@@ -9,7 +9,7 @@ define(function(require) {
 	var Adapt = require('coreJS/adapt');
 	var Backbone = require('backbone');
 	
-	var rollay = $("<div>").attr("id","rollay");
+	var rollay = $('<div>').attr("id","rollay");
 	var visibility = {
 			top: 0,
 			hidden: true,
@@ -23,6 +23,7 @@ define(function(require) {
 		initialize: function() {
 			this.model = new Backbone.Model(Adapt.course.get("_rollay"));
 			if (typeof this.model.get("_duration") == "undefined") this.model.set("_duration",{ show:200, hide:200 });
+
 			Adapt.trigger("rollay:initialised");
 		},
 		setCustomView: function(rollayView) {
@@ -48,14 +49,22 @@ define(function(require) {
 			this.render();
 			if (typeof duration == "undefined") duration = this.model.get("_duration").show;
 			var rollay = this;
-			this.$el.css({top: $(window).height() + "px", display: "block" });
-			this.$el.animate({ top: visibility.top + "px" }, {duration:duration, start: function() {
+			if (duration > 0) {
+				this.$el.css({top: $(window).height() + "px", display: "block" });
+				this.$el.animate({ top: visibility.top + "px" }, {duration:duration, start: function() {
+					visibility.hidden = false;
+					Adapt.trigger("rollay:opened");
+				}, complete: function() {
+					visibility.scrollTop = $("body").scrollTop();
+					$("body").css({ "height": $(window).height() + "px" }).addClass("stop-scroll");
+				}});
+			} else {
+				this.$el.css({top: visibility.top + "px", display: "block" });
 				visibility.hidden = false;
-				Adapt.trigger("rollay:opened");
-			}, complete: function() {
 				visibility.scrollTop = $("body").scrollTop();
 				$("body").css({ "height": $(window).height() + "px" }).addClass("stop-scroll");
-			}});
+				Adapt.trigger("rollay:opened");
+			}
 			
 		},
 		hide: function(duration) {

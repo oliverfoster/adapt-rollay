@@ -35,7 +35,7 @@ define(function(require) {
 		if (typeof Handlebars.templates[this.template] == "undefined")  throw "Template not found on RollayView instance: " + this.template;
 		var template = Handlebars.templates[this.template];
 		var RollayViewHandle = this;
-	    if (typeof RollayViewHandle.model != "undefined") {
+	    if (typeof RollayViewHandle.model != "undefined" && RollayViewHandle.model !== null) {
 	    	if (typeof RollayViewHandle.model.toJSON == "function") RollayViewHandle.$el.html(template(RollayViewHandle.model.toJSON()));
 	    	else RollayViewHandle.$el.html(template(RollayViewHandle.model));
 		} else RollayViewHandle.$el.html(template());
