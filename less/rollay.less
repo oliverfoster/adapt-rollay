@@ -7,21 +7,26 @@
 #rollay {
 	display: none;
 	width:100%;
-	background-color: white;
+	background-color: @rollay-bg-color;
 	bottom: 0px;
-	left: 0px;
-	right:0px;
 	position: fixed;
 	overflow: hidden;
 	z-index: 1;
-}
-
-.body-wrapper-bottomnavigation {
-	#rollay {
-		margin-bottom: 50px;
+	@media all and (max-width:@device-width-small) {
+		left:50%;
+		max-width: 400px;
+		margin-left: -200px;
+	}
+	@media all and (max-width:400px) {
+		left:0;
+		max-width: 400px;
+		margin-left: 0;
 	}
 }
 
-.stop-scroll { 
-	overflow: hidden;
+html.stop-scroll {
+	body { 
+		overflow-y: hidden;
+	}
 }
+

@@ -1,7 +1,8 @@
 // To go in the course.json file
 "_rollay": {
     "_duration": {
-        "show": 200,
-        "hide": 200
-    }
+        "show": 100,
+        "hide": 100
+    },
+    "_forceShow" : true //will not close on back nav or drawer open
 }

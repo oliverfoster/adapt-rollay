@@ -1,0 +1,13 @@
+//BOTTOM NAVIGATION AWARE, MOVE UP ON BOTTOM NAV
+html.has-bottomnavigation {
+
+	//IF BOTTOM NAVIGATION ISN'T INCLUDED IN COURSE
+	.define-bottomnavvariables-if-not-defined() {
+	    @bottomnavigation-height: 50px;
+	} .define-bottomnavvariables-if-not-defined();
+
+
+	#rollay {
+		margin-bottom: @bottomnavigation-height;
+	}
+}

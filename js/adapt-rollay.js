@@ -9,105 +9,241 @@ define(function(require) {
 	var Adapt = require('coreJS/adapt');
 	var Backbone = require('backbone');
 	
-	var rollay = $('<div>').attr("id","rollay");
+	//PRIVATE VARIABLES
 	var visibility = {
-			top: 0,
-			hidden: true,
-			scrollTop: 0
-		};
+		topNavBarHeight: 0,
+		hidden: true,
+		scrollTop: 0
+	};
 
-	Adapt.rollay = {
-		$el: rollay,
+	var rollay = {
+		//PUBLIC VARIABLES
+		$el: $('<div>').attr("id","rollay").appendTo( $("body") ),
 		model: null,
 		view: null,
-		initialize: function() {
-			this.model = new Backbone.Model(Adapt.course.get("_rollay"));
-			if (typeof this.model.get("_duration") == "undefined") this.model.set("_duration",{ show:200, hide:200 });
 
-			Adapt.trigger("rollay:initialised");
-		},
-		setCustomView: function(rollayView) {
-			rollayView.undelegateEvents();
-			Adapt.trigger("rollay:setCustomView", rollayView);
-			this.view = rollayView;
-			this.$el.html("").append(this.view.$el);
-			rollayView.delegateEvents();
-		},
+		//EVENTS
 		onResize: function() {
-			visibility.top = parseInt($(".navigation").css("height"));
+			//capture top nav bar bottom (as changes depending on device) 
+			visibility.topNavBarHeight = parseInt( $(".navigation").css("height") );
+
 			if (!visibility.hidden) {
-				this.$el.css({"top": visibility.top + "px"});
-				$("body").css({ "height": $(window).height() + "px" });
+
+				this.$el.css({
+					top: visibility.topNavBarHeight + "px", 
+
+					//set width to window width (to align with restricted aspect ratios)
+					width: $(window).width()
+				});
+
+				$("body").css({ 
+					"height": $(window).height() + "px" 
+				});
 			}
 		},
-		render: function() {
-			if (typeof this.view.reRender == "function") this.view.reRender();
+
+		initialize: function() {
+			this.model = new Backbone.Model( Adapt.course.get("_rollay") );
+
+			if (typeof this.model.get("_duration") == "undefined") this.model.set("_duration", { 
+				show:200, 
+				hide:200 
+			});
+
+			if (typeof this.model.get("_forceShow") == "undefined") this.model.set("_forceShow", false);
+
+			Adapt.trigger("rollay:initialized");
 		},
-		show: function(duration) {
+
+		//DRAWING
+		setCustomView: function(view) {
+
+			view.undelegateEvents();
+
+			this.view = view;
+
+			this.$el.html("").append( this.view.$el );
+
+			view.delegateEvents();
+
+			Adapt.trigger("rollay:setCustomView", view);
+
+		},
+
+		render: function() {
+
+			if (typeof this.view.preRender == "function") this.view.preRender();
+			if (typeof this.view.render == "function") this.view.render();
+			if (typeof this.view.postRender == "function") this.view.postRender();
+
+		},
+
+		//MAIN
+		forceShow: function(bool) {
+			//do not close on drawer open or back nav
+			this.model.set("_forceShow", (bool === true));
+		},
+
+		show: function(duration, callback) {
+
+			if (typeof duration == "function") {
+				callback = duration;
+				duration = undefined;
+			}
+
 			if (!visibility.hidden) return;
+
 			Adapt.trigger("popup:opened");
+
 			this.render();
+
 			if (typeof duration == "undefined") duration = this.model.get("_duration").show;
-			var rollay = this;
-			if (duration > 0) {
-				this.$el.css({top: $(window).height() + "px", display: "block" });
-				this.$el.animate({ top: visibility.top + "px" }, {duration:duration, start: function() {
-					visibility.hidden = false;
-					Adapt.trigger("rollay:opened");
-				}, complete: function() {
-					visibility.scrollTop = $("body").scrollTop();
-					$("body").css({ "height": $(window).height() + "px" }).addClass("stop-scroll");
-				}});
-			} else {
-				this.$el.css({top: visibility.top + "px", display: "block" });
+
+			function start() {
 				visibility.hidden = false;
+
+				rollay.$el.css({
+					top: $(window).height() + "px", 
+					display: "block", 
+					width: $(window).width() 
+				});
+
+				Adapt.trigger("rollay:opening");
+			}
+
+			function complete() {
 				visibility.scrollTop = $("body").scrollTop();
-				$("body").css({ "height": $(window).height() + "px" }).addClass("stop-scroll");
+
+				rollay.$el.css({
+					top: visibility.topNavBarHeight + "px",
+					display: "block" 
+				});
+
+				$("body").css({ 
+					"height": $(window).height() + "px" 
+				});
+
+				$("html").addClass("stop-scroll");
+
 				Adapt.trigger("rollay:opened");
+
+				if (typeof callback == "function") callback();
+			}
+
+			if (duration > 0) {
+				this.$el.animate({ 
+					top: visibility.topNavBarHeight + "px" 
+				}, {
+					duration:duration, 
+					start: start, 
+					complete: complete 
+				});
+			} else {
+				start();
+				complete();
 			}
 			
 		},
-		hide: function(duration) {
-			if (visibility.hidden) return;
-			if (typeof duration == "undefined") duration = this.model.get("_duration").hide;
-			var rollay = this;
-			function finished() {
-				visibility.hidden = true;
-				Adapt.trigger("popup:closed");
-				Adapt.trigger("rollay:closed");
-				rollay.$el.css({ display: "none" });
+
+		hide: function(duration, callback) {
+
+			if (typeof duration == "function") {
+				callback = duration;
+				duration = undefined;
 			}
-			$("body").css("height", null);
-			$("body").removeClass("stop-scroll");
-			$("body").scrollTop(visibility.scrollTop);
+
+			if (visibility.hidden) return;
+
+			if (typeof duration == "undefined") duration = this.model.get("_duration").hide;
+
+			function start() {
+				
+				$("body").css({
+					"height": "auto"
+				});
+				
+				$("html").removeClass("stop-scroll");
+				
+				$("body").scrollTop( visibility.scrollTop );
+				
+				rollay.$el.css({ 
+					top: visibility.topNavBarHeight + "px" 
+				});
+
+				Adapt.trigger("rollay:closing");
+
+			}
+
+			function complete() {
+
+				visibility.hidden = true;
+
+				Adapt.trigger("popup:closed");
+
+				Adapt.trigger("rollay:closed");
+
+				rollay.$el.css({
+					top: $(window).height() + "px",
+					display: "none" 
+				});
+
+				$("body").css({
+					"height": "auto"
+				});
+
+
+
+				if (typeof callback == "function") callback();
+			}
+
 			if (duration > 0) {
-				this.$el.css({ top: visibility.top + "px" });
-				this.$el.animate({ top: $(window).height() + "px" }, {duration:duration, complete: finished});
+				this.$el.animate({ 
+					top: $(window).height() + "px" 
+				}, {
+					duration:duration, 
+					start: start, 
+					complete: complete
+				});
 			} else {
-				this.$el.css({ top: $(window).height() + "px" });
-				finished();
+				start();
+				complete();
 			}
 		}
 	};
 
-	Adapt.on("app:dataReady", function() {
-		Adapt.rollay.initialize.call(Adapt.rollay);
+	Adapt.on("rollay:open", function(duration, callback) {
+		rollay.show(duration, callback);
 	});
 
-	//some other popup is open
+	Adapt.on("rollay:close", function(duration, callback) {
+		rollay.hide(duration, callback);
+	});
+
+	Adapt.once("app:dataReady", function() {
+		rollay.initialize();
+	});
+
+	//drawer is opened
 	Adapt.on("drawer:opened", function () { 
-		Adapt.rollay.hide.call(Adapt.rollay); 
+		if (rollay.model.get("_forceShow")) return;
+		rollay.hide(); 
 	});
 
 	//back button clicked
 	Adapt.on("navigation:backButton",  function () { 
-		Adapt.rollay.hide.call(Adapt.rollay); 
+		if (rollay.model.get("_forceShow")) return;
+		rollay.hide(); 
 	});
 
 	//device resize and navigation drawn
-	Adapt.on("device:resize", function() { Adapt.rollay.onResize.call(Adapt.rollay); } );
-	Adapt.on("navigationView:postRender", function() { Adapt.rollay.onResize.call(Adapt.rollay); } );
+	Adapt.on("device:resize", function() { 
+		rollay.onResize(); 
+	});
+
+	Adapt.on("navigationView:postRender", function() { 
+		rollay.onResize(); 
+	});
 	
-	$("body").append(rollay);
+	Adapt.rollay = rollay;
 
 });
