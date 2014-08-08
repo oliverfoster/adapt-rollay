@@ -16,53 +16,16 @@ define(function(require) {
 		scrollTop: 0
 	};
 
-	var rollay = {
-		//PUBLIC VARIABLES
-		$el: $('<div>').attr("id","rollay").appendTo( $("body") ),
-		model: null,
-		view: null,
-
-		//EVENTS
-		onResize: function() {
-			//capture top nav bar bottom (as changes depending on device) 
-			visibility.topNavBarHeight = parseInt( $(".navigation").css("height") );
-
-			if (!visibility.hidden) {
-
-				this.$el.css({
-					top: visibility.topNavBarHeight + "px", 
-
-					//set width to window width (to align with restricted aspect ratios)
-					width: $(window).width()
-				});
-
-				$("body").css({ 
-					"height": $(window).height() + "px" 
-				});
-			}
-		},
-
-		initialize: function() {
-			this.model = new Backbone.Model( Adapt.course.get("_rollay") );
-
-			if (typeof this.model.get("_duration") == "undefined") this.model.set("_duration", { 
-				show:200, 
-				hide:200 
-			});
-
-			if (typeof this.model.get("_forceShow") == "undefined") this.model.set("_forceShow", false);
-
-			Adapt.trigger("rollay:initialized");
-		},
+	var rollay = new (Backbone.View.extend({
 
 		//DRAWING
 		setCustomView: function(view) {
 
 			view.undelegateEvents();
 
-			this.view = view;
+			this.model.set("_customView", view);
 
-			this.$el.html("").append( this.view.$el );
+			this.$el.html("").append( view.$el );
 
 			view.delegateEvents();
 
@@ -72,9 +35,7 @@ define(function(require) {
 
 		render: function() {
 
-			if (typeof this.view.preRender == "function") this.view.preRender();
-			if (typeof this.view.render == "function") this.view.render();
-			if (typeof this.view.postRender == "function") this.view.postRender();
+			if (typeof this.model.get("_customView").render == "function") this.model.get("_customView").render();
 
 		},
 
@@ -209,7 +170,9 @@ define(function(require) {
 				complete();
 			}
 		}
-	};
+	}))();
+
+	rollay.$el = $('<div>').attr("id","rollay").appendTo( $("body") );
 
 	Adapt.on("rollay:open", function(duration, callback) {
 		rollay.show(duration, callback);
@@ -220,7 +183,16 @@ define(function(require) {
 	});
 
 	Adapt.once("app:dataReady", function() {
-		rollay.initialize();
+		rollay.model = new Backbone.Model( Adapt.course.get("_rollay") );
+
+		if (typeof rollay.model.get("_duration") == "undefined") rollay.model.set("_duration", { 
+			show:200, 
+			hide:200 
+		});
+
+		if (typeof rollay.model.get("_forceShow") == "undefined") rollay.model.set("_forceShow", false);
+
+		Adapt.trigger("rollay:initialized");
 	});
 
 	//drawer is opened
@@ -236,14 +208,25 @@ define(function(require) {
 	});
 
 	//device resize and navigation drawn
-	Adapt.on("device:resize", function() { 
-		rollay.onResize(); 
+	Adapt.on("device:resize navigationView:postRender", function() { 
+		//capture top nav bar bottom (as changes depending on device) 
+		visibility.topNavBarHeight = parseInt( $(".navigation").css("height") );
+
+		if (!visibility.hidden) {
+
+			rollay.$el.css({
+				top: visibility.topNavBarHeight + "px", 
+
+				//set width to window width (to align with restricted aspect ratios)
+				width: $(window).width()
+			});
+
+			$("body").css({ 
+				"height": $(window).height() + "px" 
+			});
+		}
 	});
 
-	Adapt.on("navigationView:postRender", function() { 
-		rollay.onResize(); 
-	});
-	
 	Adapt.rollay = rollay;
 
 });
