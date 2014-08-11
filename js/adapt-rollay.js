@@ -23,9 +23,9 @@ define(function(require) {
 
 			view.undelegateEvents();
 
-			this.model.set("_customView", view);
+			rollay.model.set("_customView", view);
 
-			this.$el.html("").append( view.$el );
+			rollay.$el.html("").append( view.$el );
 
 			view.delegateEvents();
 
@@ -35,14 +35,14 @@ define(function(require) {
 
 		render: function() {
 
-			if (typeof this.model.get("_customView").render == "function") this.model.get("_customView").render();
+			if (typeof rollay.model.get("_customView").render == "function") rollay.model.get("_customView").render();
 
 		},
 
 		//MAIN
 		forceShow: function(bool) {
 			//do not close on drawer open or back nav
-			this.model.set("_forceShow", (bool === true));
+			rollay.model.set("_forceShow", (bool === true));
 		},
 
 		show: function(duration, callback) {
@@ -56,9 +56,9 @@ define(function(require) {
 
 			Adapt.trigger("popup:opened");
 
-			this.render();
+			rollay.render();
 
-			if (typeof duration == "undefined") duration = this.model.get("_duration").show;
+			if (typeof duration == "undefined") duration = rollay.model.get("_duration").show;
 
 			function start() {
 				visibility.hidden = false;
@@ -92,7 +92,7 @@ define(function(require) {
 			}
 
 			if (duration > 0) {
-				this.$el.animate({ 
+				rollay.$el.animate({ 
 					top: visibility.topNavBarHeight + "px" 
 				}, {
 					duration:duration, 
@@ -115,7 +115,7 @@ define(function(require) {
 
 			if (visibility.hidden) return;
 
-			if (typeof duration == "undefined") duration = this.model.get("_duration").hide;
+			if (typeof duration == "undefined") duration = rollay.model.get("_duration").hide;
 
 			function start() {
 				
@@ -158,7 +158,7 @@ define(function(require) {
 			}
 
 			if (duration > 0) {
-				this.$el.animate({ 
+				rollay.$el.animate({ 
 					top: $(window).height() + "px" 
 				}, {
 					duration:duration, 
