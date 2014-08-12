@@ -21,15 +21,28 @@ define(function(require) {
 		//DRAWING
 		setCustomView: function(view) {
 
+			if (view === rollay.model.get("_customView")) return;
+
 			view.undelegateEvents();
 
 			rollay.model.set("_customView", view);
 
-			rollay.$el.html("").append( view.$el );
-
-			view.delegateEvents();
-
-			Adapt.trigger("rollay:setCustomView", view);
+			if (visibility.hidden) {
+				rollay.$el.html("").append( view.$el );
+				view.delegateEvents();
+				Adapt.trigger("rollay:setCustomView", view);
+			} else {
+				rollay.$el.children().fadeOut({
+					complete: function() {
+						view.$el.css("display","none");
+						rollay.$el.html("").append( view.$el );
+						view.$el.fadeIn();
+						view.delegateEvents();
+						Adapt.trigger("rollay:setCustomView", view);
+					},
+					duration: 200
+				});
+			}
 
 		},
 
@@ -53,8 +66,6 @@ define(function(require) {
 			}
 
 			if (!visibility.hidden) return;
-
-			Adapt.trigger("popup:opened");
 
 			rollay.render();
 
@@ -86,18 +97,19 @@ define(function(require) {
 
 				$("html").addClass("stop-scroll");
 
+				Adapt.trigger("popup:opened");
 				Adapt.trigger("rollay:opened");
 
 				if (typeof callback == "function") callback();
 			}
 
 			if (duration > 0) {
+				start();
 				rollay.$el.animate({ 
-					top: visibility.topNavBarHeight + "px" 
+					top: visibility.topNavBarHeight + "px"
 				}, {
 					duration:duration, 
-					start: start, 
-					complete: complete 
+					complete: complete
 				});
 			} else {
 				start();
@@ -118,6 +130,7 @@ define(function(require) {
 			if (typeof duration == "undefined") duration = rollay.model.get("_duration").hide;
 
 			function start() {
+				Adapt.trigger("popup:closed");
 				
 				$("body").css({
 					"height": "auto"
@@ -139,7 +152,7 @@ define(function(require) {
 
 				visibility.hidden = true;
 
-				Adapt.trigger("popup:closed");
+				
 
 				Adapt.trigger("rollay:closed");
 
