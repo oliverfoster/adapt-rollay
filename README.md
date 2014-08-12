@@ -29,8 +29,10 @@ Adapt.bottomnavigation.model:
 	}
 ```
 
-Compatible with (adapt-ratioRestrict)[http://github.com/cgkineo/adapt-ratioRestrict]  
+Compatible with [adapt-ratioRestrict](http://github.com/cgkineo/adapt-ratioRestrict):  
+	
 	Uses $(window).width() to calculate width  
 
-Compatible with (adapt-bottomnavigation)[http://github.com/cgkineo/adapt-bottomnavigation]:  
+Compatible with [adapt-bottomnavigation](http://github.com/cgkineo/adapt-bottomnavigation):  
+	
 	Moves up by size of bottomnavigation  
