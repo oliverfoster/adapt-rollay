@@ -28,6 +28,7 @@ define(function(require) {
 			rollay.model.set("_customView", view);
 
 			if (visibility.hidden) {
+				view.$el.css("display","");
 				rollay.$el.html("").append( view.$el );
 				view.delegateEvents();
 				Adapt.trigger("rollay:setCustomView", view);
